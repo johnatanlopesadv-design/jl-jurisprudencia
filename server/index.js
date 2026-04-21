@@ -4,7 +4,7 @@ const NodeCache = require('node-cache');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const DATAJUD_KEY = 'cDZHYzlZa0JadVREZDJCendFbXNpTT';
+const DATAJUD_KEY = 'cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==';
 
 // Cache de 2 horas
 const cache = new NodeCache({ stdTTL: 7200, checkperiod: 600 });
