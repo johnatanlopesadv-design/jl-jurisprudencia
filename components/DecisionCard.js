@@ -98,7 +98,17 @@ export default function DecisionCard({ decisao, index }) {
           {id && (
             <div className="detail-row">
               <span className="detail-label">Nº processo</span>
-              <span className="detail-value detail-mono">{id}</span>
+              <span className="detail-value detail-mono">
+                {id.match(/STJ_SUP_(\d+)/)?.[1] || id}
+              </span>
+            </div>
+          )}
+          {assuntos.length > 0 && (
+            <div className="detail-row detail-search">
+              <span className="detail-label">🔍 Pesquisar no STJ</span>
+              <span className="detail-value detail-search-terms">
+                {assuntos.join(', ')}
+              </span>
             </div>
           )}
         </div>

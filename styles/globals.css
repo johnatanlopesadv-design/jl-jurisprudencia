@@ -584,6 +584,19 @@ body {
   word-break: break-all;
 }
 
+.detail-search {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-search-terms {
+  font-weight: 600;
+  color: var(--accent-gold);
+  user-select: all;
+  cursor: text;
+}
+
 .card-link-disabled {
   color: var(--text-muted);
   cursor: default;
