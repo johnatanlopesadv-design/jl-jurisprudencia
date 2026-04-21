@@ -107,14 +107,16 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
       const src = hit._source || {};
       const numero = src.numeroProcesso || hit._id || String(idx);
       const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
+      const assunto = assuntos[0] || area;
+      const link = `https://jurisprudencia.stj.jus.br/pages/search?base=acordaos&pesquisa_inteira=${encodeURIComponent(assunto)}`;
 
       return {
-        id: numero,
+        id: `datajud-stj-${area}-${numero}`,
         tribunal: 'STJ',
-        titulo: `${src.classe?.nome || 'Processo'} — ${assuntos[0] || area}`,
+        titulo: `${src.classe?.nome || 'Processo'} — ${assunto}`,
         ementa: montarResumo(src),
         data: parseDataJud(src.dataAjuizamento),
-        link: `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${numero}`,
+        link,
         area,
         fonte: 'datajud',
         classe: src.classe?.nome || '',
