@@ -42,6 +42,18 @@ const AREA_TERMS = {
 // ─── DATAJUD FETCH ────────────────────────────────────────────────────────────
 // Estrutura real da API: campos na raiz do _source (sem wrapper dadosBasicos)
 // assuntos[].nome, classe.nome, numeroProcesso, dataAjuizamento ("YYYYMMDDHHMMSS")
+function parseDataJud(str) {
+  if (!str) return new Date().toISOString();
+  try {
+    const s = String(str).padEnd(14, '0');
+    const year = s.slice(0, 4);
+    const month = s.slice(4, 6);
+    const day = s.slice(6, 8);
+    return new Date(`${year}-${month}-${day}T00:00:00.000Z`).toISOString();
+  } catch (e) {
+    return new Date().toISOString();
+  }
+}
 async function queryDataJud(tribunal, area, terms, size = 50) {
   const endpoint = TRIBUNAL_ENDPOINTS[tribunal];
 
@@ -105,15 +117,7 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
           .slice(0, 500) ||
         `${classe || 'Decisão'} relativa a ${terms[0]}`;
 
-      // dataAjuizamento vem como string "YYYYMMDDHHMMSS"
-      const dataRaw = src.dataAjuizamento;
-      let dataISO = new Date().toISOString();
-      if (dataRaw && dataRaw.length >= 8) {
-        const y = dataRaw.slice(0, 4);
-        const mo = dataRaw.slice(4, 6);
-        const d = dataRaw.slice(6, 8);
-        dataISO = new Date(`${y}-${mo}-${d}T00:00:00Z`).toISOString();
-      }
+      const dataISO = parseDataJud(src.dataAjuizamento);
 
       return {
         id: `datajud-${tribunal.toLowerCase()}-${area}-${hit._id || idx}`,
