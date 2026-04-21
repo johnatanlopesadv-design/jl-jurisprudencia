@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: jl-juris-proxy
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3001
+    autoDeploy: true

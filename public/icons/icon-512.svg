@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#1a1a2e"/>
+  <!-- Inner glow rim -->
+  <rect x="6" y="6" width="500" height="500" rx="92" fill="none" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.3"/>
+
+  <!-- Balança - haste vertical -->
+  <line x1="256" y1="80" x2="256" y2="390" stroke="#c9a84c" stroke-width="12" stroke-linecap="round"/>
+  <!-- Base horizontal -->
+  <line x1="168" y1="406" x2="344" y2="406" stroke="#c9a84c" stroke-width="12" stroke-linecap="round"/>
+  <!-- Pezinho central -->
+  <line x1="256" y1="390" x2="256" y2="418" stroke="#c9a84c" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Viga horizontal -->
+  <line x1="90" y1="148" x2="422" y2="148" stroke="#c9a84c" stroke-width="12" stroke-linecap="round"/>
+  <!-- Pivô -->
+  <circle cx="256" cy="148" r="18" fill="#c9a84c"/>
+  <circle cx="256" cy="148" r="9" fill="#1a1a2e"/>
+
+  <!-- Fios prato esquerdo -->
+  <line x1="122" y1="148" x2="102" y2="258" stroke="#c9a84c" stroke-width="6" stroke-linecap="round"/>
+  <line x1="122" y1="148" x2="158" y2="258" stroke="#c9a84c" stroke-width="6" stroke-linecap="round"/>
+  <!-- Prato esquerdo -->
+  <path d="M92 258 Q130 278 168 258" stroke="#c9a84c" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Fios prato direito -->
+  <line x1="390" y1="148" x2="354" y2="258" stroke="#c9a84c" stroke-width="6" stroke-linecap="round"/>
+  <line x1="390" y1="148" x2="410" y2="258" stroke="#c9a84c" stroke-width="6" stroke-linecap="round"/>
+  <!-- Prato direito -->
+  <path d="M344 258 Q382 278 420 258" stroke="#c9a84c" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Letras JL - grandes e elegantes -->
+  <text x="256" y="490" text-anchor="middle" font-family="Georgia, serif" font-size="46" font-weight="bold" fill="#c9a84c" letter-spacing="10">JL</text>
+</svg>

@@ -1,0 +1,51 @@
+{
+  "name": "JL Jurisprudência",
+  "short_name": "JL Juris",
+  "description": "Monitor de Decisões STJ e STF - Johnatan Lopes Advocacia",
+  "theme_color": "#1a1a2e",
+  "background_color": "#0f0f1a",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/",
+  "categories": ["productivity", "legal"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Plano de Saúde",
+      "url": "/?area=saude",
+      "description": "Ver decisões sobre plano de saúde"
+    },
+    {
+      "name": "INSS",
+      "url": "/?area=inss",
+      "description": "Ver decisões previdenciárias"
+    }
+  ]
+}
