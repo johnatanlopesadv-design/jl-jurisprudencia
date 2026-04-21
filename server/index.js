@@ -24,13 +24,12 @@ app.use(
 app.use(express.json());
 
 // ─── CONFIGURAÇÃO ─────────────────────────────────────────────────────────────
+// STF não possui índice na API pública do DataJud (CNJ não disponibiliza)
 const TRIBUNAL_ENDPOINTS = {
   STJ: 'https://api-publica.datajud.cnj.jus.br/api_publica_stj/_search',
-  STF: 'https://api-publica.datajud.cnj.jus.br/api_publica_stf/_search',
 };
 
 const STJ_LINK = 'https://processo.stj.jus.br/SCON/';
-const STF_LINK = 'https://jurisprudencia.stf.jus.br/pages/search';
 
 // Termos de busca por área (OR implícito via should)
 const AREA_TERMS = {
@@ -55,7 +54,7 @@ async function queryDataJud(tribunal, area, terms, size = 25) {
       },
     },
     size,
-    sort: [{ 'dadosBasicos.dataAjuizamento': { order: 'desc' } }],
+    sort: [{ _score: 'desc' }],
     _source: ['dadosBasicos', 'movimentos'],
   };
 
@@ -111,7 +110,7 @@ async function queryDataJud(tribunal, area, terms, size = 25) {
         titulo: titulo.trim(),
         ementa: ementa.trim(),
         data: dataRaw ? new Date(dataRaw).toISOString() : new Date().toISOString(),
-        link: tribunal === 'STJ' ? STJ_LINK : STF_LINK,
+        link: STJ_LINK,
         area,
         fonte: 'datajud',
       };
@@ -137,10 +136,11 @@ app.get('/api/decisoes', async (req, res) => {
   }
 
   // Montar lista de queries
+  // STF não está disponível no DataJud público; usa apenas STJ com size dobrado
   const tribunalList =
-    tribunal === 'ambos'
-      ? ['STJ', 'STF']
-      : [tribunal.toUpperCase()];
+    tribunal === 'ambos' || tribunal.toUpperCase() === 'STF'
+      ? ['STJ']
+      : [tribunal.toUpperCase()].filter((t) => TRIBUNAL_ENDPOINTS[t]);
 
   const areaList =
     area === 'todas'
@@ -158,7 +158,7 @@ app.get('/api/decisoes', async (req, res) => {
   const startTime = Date.now();
 
   const results = await Promise.allSettled(
-    queries.map((q) => queryDataJud(q.tribunal, q.area, q.terms, 25))
+    queries.map((q) => queryDataJud(q.tribunal, q.area, q.terms, 50))
   );
 
   let allItems = [];
