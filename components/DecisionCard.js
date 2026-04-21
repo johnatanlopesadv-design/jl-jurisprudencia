@@ -23,6 +23,16 @@ function formatDate(iso) {
   });
 }
 
+function buildDecisionUrl(decision) {
+  if (decision.fonte === 'datajud' && decision.id) {
+    const match = decision.id.match(/STJ_SUP_(\d+)/);
+    if (match) {
+      return `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${match[1]}`;
+    }
+  }
+  return decision.link || 'https://processo.stj.jus.br/SCON/';
+}
+
 export default function DecisionCard({ decisao, index }) {
   const { tribunal, titulo, ementa, data, link, area } = decisao;
 
@@ -32,11 +42,13 @@ export default function DecisionCard({ decisao, index }) {
   const areaLabel     = AREA_LABELS[area] || area;
   const areaIcon      = AREA_ICONS[area] || '⚖️';
 
+  const resolvedUrl = buildDecisionUrl(decisao);
+
   // Valida URL sem depender de new URL() para não re-encodar parâmetros
-  const hasLink = typeof link === 'string' && link.startsWith('http');
+  const hasLink = typeof resolvedUrl === 'string' && resolvedUrl.startsWith('http');
 
   function abrirLink() {
-    const url = link;
+    const url = resolvedUrl;
     console.log('[JL Juris] abrirLink chamado, url =', url);
 
     if (!url || !url.startsWith('http')) {
