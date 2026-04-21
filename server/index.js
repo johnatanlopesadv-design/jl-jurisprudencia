@@ -54,29 +54,14 @@ function parseDataJud(str) {
     return new Date().toISOString();
   }
 }
-function montarTitulo(src) {
-  const classe = src.classe?.nome || 'Processo';
-  const numero = src.numeroProcesso || '';
-  const assunto = (src.assuntos || [])[0]?.nome || '';
-  return assunto ? `${assunto} — ${classe}` : `${classe} ${numero}`.trim();
-}
-
-function montarEmenta(src) {
-  const classe = src.classe?.nome || '';
-  const assuntos = (src.assuntos || []).map((a) => a.nome).join(', ');
-  const orgao = src.orgaoJulgador?.nome || '';
-  const uf = src.tribunal || 'STJ';
-  const situacao = src.situacao || '';
-  const relator = src.relator?.nome || '';
-
-  let ementa = '';
-  if (classe) ementa += `${classe}. `;
-  if (assuntos) ementa += `Assunto: ${assuntos}. `;
-  if (orgao) ementa += `Órgão julgador: ${orgao}. `;
-  if (relator) ementa += `Relator: ${relator}. `;
-  if (situacao) ementa += `Situação: ${situacao}.`;
-
-  return ementa.trim() || 'Consulte a íntegra no STJ.';
+function montarResumo(src) {
+  const partes = [];
+  const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
+  if (assuntos.length) partes.push(`Assunto: ${assuntos.join(', ')}`);
+  if (src.orgaoJulgador?.nome) partes.push(`Órgão: ${src.orgaoJulgador.nome}`);
+  if (src.relator?.nome) partes.push(`Relator: ${src.relator.nome}`);
+  if (src.situacao) partes.push(`Situação: ${src.situacao}`);
+  return partes.join(' | ') || 'Consulte o processo no STJ.';
 }
 
 async function queryDataJud(tribunal, area, terms, size = 50) {
@@ -120,20 +105,23 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
   return hits
     .map((hit, idx) => {
       const src = hit._source || {};
-      const titulo = montarTitulo(src);
-      const ementa = montarEmenta(src);
-
-      const dataISO = parseDataJud(src.dataAjuizamento);
+      const numero = src.numeroProcesso || hit._id || String(idx);
+      const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
 
       return {
-        id: `datajud-${tribunal.toLowerCase()}-${area}-${hit._id || idx}`,
-        tribunal,
-        titulo: titulo.trim(),
-        ementa: ementa.trim(),
-        data: dataISO,
-        link: STJ_LINK,
+        id: numero,
+        tribunal: 'STJ',
+        titulo: `${src.classe?.nome || 'Processo'} — ${assuntos[0] || area}`,
+        ementa: montarResumo(src),
+        data: parseDataJud(src.dataAjuizamento),
+        link: `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${numero}`,
         area,
         fonte: 'datajud',
+        classe: src.classe?.nome || '',
+        orgao: src.orgaoJulgador?.nome || '',
+        assuntos,
+        situacao: src.situacao || '',
+        relator: src.relator?.nome || '',
       };
     })
     .filter((d) => d.titulo.length > 3);

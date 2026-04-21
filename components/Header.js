@@ -6,7 +6,7 @@ export default function Header() {
           <div className="logo-badge" aria-hidden="true">JL</div>
           <div className="logo-text">
             <h1 className="logo-title">Jurisprudência</h1>
-            <p className="logo-subtitle">Johnatan Lopes Advocacia</p>
+            <p className="logo-subtitle">Acompanhamento processual · STJ</p>
           </div>
         </div>
 

@@ -543,6 +543,47 @@ body {
 .card-link-text svg { transition: transform var(--transition); }
 .card-link-text:hover svg { transform: translateX(3px); }
 
+/* ─── DETALHES EXPANDIDOS ────────────────────────────────────────────────────── */
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  animation: fadeIn 0.18s ease;
+}
+
+.detail-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.detail-label {
+  flex-shrink: 0;
+  min-width: 100px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.detail-value {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.detail-mono {
+  font-family: monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+
 .card-link-disabled {
   color: var(--text-muted);
   cursor: default;
