@@ -25,11 +25,17 @@ function formatDate(iso) {
 
 function buildDecisionUrl(decision) {
   const titulo = decision.titulo || '';
-  const termo = encodeURIComponent(titulo.slice(0, 60));
-  if (termo) {
-    return `https://scon.stj.jus.br/SCON/pesquisa.jsp?b=ACOR&livre=${termo}`;
-  }
-  return 'https://processo.stj.jus.br/SCON/';
+  const area = decision.area || '';
+
+  const termosPorArea = {
+    saude: 'plano de saúde cobertura ANS',
+    inss: 'benefício previdenciário INSS',
+    consumidor: 'direito do consumidor CDC dano moral',
+    familia: 'alimentos guarda família',
+  };
+
+  const termo = encodeURIComponent(termosPorArea[area] || titulo.slice(0, 50));
+  return `https://jurisprudencia.stj.jus.br/pages/search?base=acordaos&pesquisa_inteira=${termo}`;
 }
 
 export default function DecisionCard({ decisao, index }) {
