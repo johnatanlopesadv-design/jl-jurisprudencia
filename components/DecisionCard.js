@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const AREA_LABELS = {
   saude:      'Plano de Saúde',
   inss:       'INSS / Prev.',
@@ -23,53 +25,26 @@ function formatDate(iso) {
   });
 }
 
-function buildDecisionUrl(decision) {
-  const titulo = decision.titulo || '';
-  const area = decision.area || '';
-
-  const termosPorArea = {
-    saude: 'plano de saúde cobertura ANS',
-    inss: 'benefício previdenciário INSS',
-    consumidor: 'direito do consumidor CDC dano moral',
-    familia: 'alimentos guarda família',
-  };
-
-  const termo = encodeURIComponent(termosPorArea[area] || titulo.slice(0, 50));
-  return `https://jurisprudencia.stj.jus.br/pages/search?base=acordaos&pesquisa_inteira=${termo}`;
+function extractNumeroProcesso(id) {
+  if (!id) return null;
+  const match = id.match(/STJ_SUP_(\d+)/);
+  return match ? match[1] : null;
 }
 
 export default function DecisionCard({ decisao, index }) {
-  const { tribunal, titulo, ementa, data, link, area } = decisao;
+  const { tribunal, titulo, ementa, data, area, id } = decisao;
+  const [expandido, setExpandido] = useState(false);
 
   const delay         = Math.min(index * 50, 400);
   const areaClass     = area ? `area-${area}` : '';
   const tribunalClass = tribunal === 'STJ' ? 'badge-stj' : 'badge-stf';
   const areaLabel     = AREA_LABELS[area] || area;
   const areaIcon      = AREA_ICONS[area] || '⚖️';
-
-  const resolvedUrl = buildDecisionUrl(decisao);
-
-  // Valida URL sem depender de new URL() para não re-encodar parâmetros
-  const hasLink = typeof resolvedUrl === 'string' && resolvedUrl.startsWith('http');
-
-  function abrirLink() {
-    const url = resolvedUrl;
-    console.log('[JL Juris] abrirLink chamado, url =', url);
-
-    if (!url || !url.startsWith('http')) {
-      console.warn('[JL Juris] URL inválida:', url);
-      return;
-    }
-
-    // window.open é chamado diretamente no handler síncrono do clique —
-    // browsers não bloqueiam isso como popup.
-    // Usar <button> (não <a>) evita que o Next.js intercepte como rota interna.
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
+  const numeroProcesso = extractNumeroProcesso(id);
 
   return (
     <div
-      className={`decision-card ${areaClass}`}
+      className={`decision-card ${areaClass}${expandido ? ' card-expandido' : ''}`}
       style={{ '--card-delay': `${delay}ms` }}
     >
       {/* Badges + data */}
@@ -90,39 +65,88 @@ export default function DecisionCard({ decisao, index }) {
       {/* Título */}
       <h2 className="card-title">{titulo}</h2>
 
-      {/* Ementa */}
-      {ementa && <p className="card-ementa">{ementa}</p>}
+      {/* Ementa resumida (colapsada) */}
+      {!expandido && ementa && (
+        <p className="card-ementa">{ementa}</p>
+      )}
+
+      {/* Conteúdo expandido */}
+      {expandido && (
+        <div className="card-expanded-content">
+          {ementa && (
+            <div className="expanded-section">
+              <span className="expanded-label">Ementa</span>
+              <p className="expanded-ementa">{ementa}</p>
+            </div>
+          )}
+
+          <div className="expanded-meta">
+            {tribunal && (
+              <div className="expanded-meta-item">
+                <span className="expanded-label">Tribunal</span>
+                <span>{tribunal}</span>
+              </div>
+            )}
+            {areaLabel && (
+              <div className="expanded-meta-item">
+                <span className="expanded-label">Área</span>
+                <span>{areaIcon} {areaLabel}</span>
+              </div>
+            )}
+            {numeroProcesso && (
+              <div className="expanded-meta-item">
+                <span className="expanded-label">Número do processo</span>
+                <span className="expanded-numero">{numeroProcesso}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="expanded-footer">
+            <a
+              href="https://jurisprudencia.stj.jus.br/pages/search"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="expanded-stj-link"
+            >
+              Pesquisar no STJ
+              <svg width="12" height="12" viewBox="0 0 13 13" fill="none">
+                <path
+                  d="M2 6.5H11M7.5 3L11 6.5L7.5 10"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Rodapé */}
       <div className="card-footer">
-        {hasLink ? (
-          /*
-           * <button type="button"> — NUNCA interceptado pelo Next.js router.
-           * Ao contrário de <a href="...">, o router do Next.js não instala
-           * listener de clique em <button>, então window.open() funciona
-           * sem interferência.
-           */
-          <button
-            type="button"
-            className="card-link-text"
-            onClick={abrirLink}
+        <button
+          type="button"
+          className="card-link-text"
+          onClick={() => setExpandido((v) => !v)}
+        >
+          {expandido ? 'Recolher' : 'Ver ementa completa'}
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 13 13"
+            fill="none"
+            style={{ transform: expandido ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}
           >
-            Ver decisão completa
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <path
-                d="M2 6.5H11M7.5 3L11 6.5L7.5 10"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        ) : (
-          <span className="card-link-text card-link-disabled">
-            Link indisponível
-          </span>
-        )}
+            <path
+              d="M2 6.5H11M7.5 3L11 6.5L7.5 10"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
         <span className="card-source">via {tribunal}</span>
       </div>
     </div>
