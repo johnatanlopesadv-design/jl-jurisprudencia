@@ -107,8 +107,7 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
       const src = hit._source || {};
       const numero = src.numeroProcesso || hit._id || String(idx);
       const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
-      const assunto = assuntos[0] || area;
-      const link = 'https://www.stj.jus.br/sites/portalp/Paginas/jurisprudencia.aspx';
+      const link = 'https://scon.stj.jus.br/SCON/';
 
       return {
         id: `datajud-stj-${area}-${numero}`,
