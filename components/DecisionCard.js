@@ -24,13 +24,12 @@ function formatDate(iso) {
 }
 
 function buildDecisionUrl(decision) {
-  if (decision.fonte === 'datajud' && decision.id) {
-    const match = decision.id.match(/STJ_SUP_(\d+)/);
-    if (match) {
-      return `https://processo.stj.jus.br/processo/pesquisa/?tipoPesquisa=tipoPesquisaNumeroRegistro&termo=${match[1]}`;
-    }
+  const titulo = decision.titulo || '';
+  const termo = encodeURIComponent(titulo.slice(0, 60));
+  if (termo) {
+    return `https://scon.stj.jus.br/SCON/pesquisa.jsp?b=ACOR&livre=${termo}`;
   }
-  return decision.link || 'https://processo.stj.jus.br/SCON/';
+  return 'https://processo.stj.jus.br/SCON/';
 }
 
 export default function DecisionCard({ decisao, index }) {
