@@ -54,6 +54,31 @@ function parseDataJud(str) {
     return new Date().toISOString();
   }
 }
+function montarTitulo(src) {
+  const classe = src.classe?.nome || 'Processo';
+  const numero = src.numeroProcesso || '';
+  const assunto = (src.assuntos || [])[0]?.nome || '';
+  return assunto ? `${assunto} — ${classe}` : `${classe} ${numero}`.trim();
+}
+
+function montarEmenta(src) {
+  const classe = src.classe?.nome || '';
+  const assuntos = (src.assuntos || []).map((a) => a.nome).join(', ');
+  const orgao = src.orgaoJulgador?.nome || '';
+  const uf = src.tribunal || 'STJ';
+  const situacao = src.situacao || '';
+  const relator = src.relator?.nome || '';
+
+  let ementa = '';
+  if (classe) ementa += `${classe}. `;
+  if (assuntos) ementa += `Assunto: ${assuntos}. `;
+  if (orgao) ementa += `Órgão julgador: ${orgao}. `;
+  if (relator) ementa += `Relator: ${relator}. `;
+  if (situacao) ementa += `Situação: ${situacao}.`;
+
+  return ementa.trim() || 'Consulte a íntegra no STJ.';
+}
+
 async function queryDataJud(tribunal, area, terms, size = 50) {
   const endpoint = TRIBUNAL_ENDPOINTS[tribunal];
 
@@ -70,7 +95,7 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
     },
     size,
     sort: [{ _score: 'desc' }],
-    _source: ['numeroProcesso', 'classe', 'assuntos', 'movimentos', 'dataAjuizamento', 'orgaoJulgador'],
+    _source: ['numeroProcesso', 'classe', 'assuntos', 'movimentos', 'dataAjuizamento', 'orgaoJulgador', 'situacao', 'relator', 'tribunal'],
   };
 
   const res = await fetch(endpoint, {
@@ -95,27 +120,8 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
   return hits
     .map((hit, idx) => {
       const src = hit._source || {};
-      const numero = src.numeroProcesso || hit._id || '';
-      const classe = src.classe?.nome || '';
-      const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
-      const assuntoStr = assuntos.join('; ');
-
-      const titulo = classe
-        ? `${classe}${numero ? ` – ${numero}` : ''}`
-        : `Processo ${tribunal}${numero ? ` – ${numero}` : ''}`;
-
-      // Último movimento com nome descritivo
-      const movimentos = src.movimentos || [];
-      const ultMov = movimentos
-        .slice()
-        .reverse()
-        .find((m) => m.nome && m.nome.length > 5);
-      const ementa =
-        [assuntoStr, ultMov?.nome]
-          .filter(Boolean)
-          .join(' | ')
-          .slice(0, 500) ||
-        `${classe || 'Decisão'} relativa a ${terms[0]}`;
+      const titulo = montarTitulo(src);
+      const ementa = montarEmenta(src);
 
       const dataISO = parseDataJud(src.dataAjuizamento);
 
