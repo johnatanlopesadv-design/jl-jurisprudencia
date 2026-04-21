@@ -40,22 +40,25 @@ const AREA_TERMS = {
 };
 
 // ─── DATAJUD FETCH ────────────────────────────────────────────────────────────
-async function queryDataJud(tribunal, area, terms, size = 25) {
+// Estrutura real da API: campos na raiz do _source (sem wrapper dadosBasicos)
+// assuntos[].nome, classe.nome, numeroProcesso, dataAjuizamento ("YYYYMMDDHHMMSS")
+async function queryDataJud(tribunal, area, terms, size = 50) {
   const endpoint = TRIBUNAL_ENDPOINTS[tribunal];
 
   const body = {
     query: {
       bool: {
         should: terms.flatMap((term) => [
-          { match: { 'dadosBasicos.assunto.descricao': { query: term, operator: 'or' } } },
-          { match_phrase: { 'dadosBasicos.assunto.descricao': term } },
+          { match: { 'assuntos.nome': { query: term, operator: 'or' } } },
+          { match_phrase: { 'assuntos.nome': term } },
+          { match: { 'classe.nome': { query: term, operator: 'or' } } },
         ]),
         minimum_should_match: 1,
       },
     },
     size,
     sort: [{ _score: 'desc' }],
-    _source: ['dadosBasicos', 'movimentos'],
+    _source: ['numeroProcesso', 'classe', 'assuntos', 'movimentos', 'dataAjuizamento', 'orgaoJulgador'],
   };
 
   const res = await fetch(endpoint, {
@@ -79,37 +82,45 @@ async function queryDataJud(tribunal, area, terms, size = 25) {
 
   return hits
     .map((hit, idx) => {
-      const db = hit._source?.dadosBasicos || {};
-      const numero = db.numeroProcesso || hit._id || '';
-      const classe = db.classeProcessual?.nome || '';
-      const assuntos = (db.assunto || []).map((a) => a.descricao).filter(Boolean);
+      const src = hit._source || {};
+      const numero = src.numeroProcesso || hit._id || '';
+      const classe = src.classe?.nome || '';
+      const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
       const assuntoStr = assuntos.join('; ');
 
       const titulo = classe
         ? `${classe}${numero ? ` – ${numero}` : ''}`
         : `Processo ${tribunal}${numero ? ` – ${numero}` : ''}`;
 
-      // Ementa: assuntos do processo + último movimento relevante
-      const movimentos = hit._source?.movimentos || [];
+      // Último movimento com nome descritivo
+      const movimentos = src.movimentos || [];
       const ultMov = movimentos
         .slice()
         .reverse()
-        .find((m) => m.complemento && m.complemento.length > 10);
+        .find((m) => m.nome && m.nome.length > 5);
       const ementa =
-        [assuntoStr, ultMov?.complemento]
+        [assuntoStr, ultMov?.nome]
           .filter(Boolean)
           .join(' | ')
           .slice(0, 500) ||
         `${classe || 'Decisão'} relativa a ${terms[0]}`;
 
-      const dataRaw = db.dataAjuizamento || db.dataDistribuicao;
+      // dataAjuizamento vem como string "YYYYMMDDHHMMSS"
+      const dataRaw = src.dataAjuizamento;
+      let dataISO = new Date().toISOString();
+      if (dataRaw && dataRaw.length >= 8) {
+        const y = dataRaw.slice(0, 4);
+        const mo = dataRaw.slice(4, 6);
+        const d = dataRaw.slice(6, 8);
+        dataISO = new Date(`${y}-${mo}-${d}T00:00:00Z`).toISOString();
+      }
 
       return {
         id: `datajud-${tribunal.toLowerCase()}-${area}-${hit._id || idx}`,
         tribunal,
         titulo: titulo.trim(),
         ementa: ementa.trim(),
-        data: dataRaw ? new Date(dataRaw).toISOString() : new Date().toISOString(),
+        data: dataISO,
         link: STJ_LINK,
         area,
         fonte: 'datajud',
