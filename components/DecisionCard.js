@@ -23,29 +23,47 @@ function formatDate(iso) {
 
 export default function DecisionCard({ decisao, index }) {
   const [expandido, setExpandido] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   const {
     tribunal = 'STJ',
     titulo = '',
     area = '',
     data,
-    link,
     classe,
     orgao,
     assuntos = [],
     situacao,
     relator,
-    id,
+    numeroCNJ,
+    numeroRaw,
   } = decisao || {};
 
   const areaLabel = AREA_LABELS[area] || area;
   const areaIcon  = AREA_ICONS[area]  || '⚖️';
   const delay     = Math.min(index * 50, 400);
+  const numero    = numeroCNJ || numeroRaw || '';
 
-  function abrirProcesso() {
-    if (link && link.startsWith('http')) {
-      window.open(link, '_blank', 'noopener,noreferrer');
-    }
+  function copiarNumero() {
+    if (!numero) return;
+    navigator.clipboard.writeText(numero).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }).catch(() => {
+      // fallback para browsers sem clipboard API
+      const el = document.createElement('textarea');
+      el.value = numero;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    });
+  }
+
+  function abrirSCON() {
+    window.open('https://scon.stj.jus.br/SCON/', '_blank', 'noopener,noreferrer');
   }
 
   return (
@@ -67,50 +85,75 @@ export default function DecisionCard({ decisao, index }) {
       {/* Título */}
       <h2 className="card-title">{titulo}</h2>
 
-      {/* Resumo sempre visível */}
+      {/* Assuntos resumidos */}
       {assuntos.length > 0 && (
-        <p className="card-ementa">
-          {assuntos.join(' · ')}
-        </p>
+        <p className="card-ementa">{assuntos.join(' · ')}</p>
       )}
 
       {/* Detalhes expandidos */}
       {expandido && (
         <div className="card-details">
+
+          {/* Número CNJ — copiável */}
+          {numero && (
+            <div className="detail-row">
+              <span className="detail-label">Nº CNJ</span>
+              <span className="detail-value detail-numero">
+                <span className="detail-mono">{numero}</span>
+                <button
+                  type="button"
+                  className="btn-copiar"
+                  onClick={copiarNumero}
+                  title="Copiar número"
+                >
+                  {copiado ? '✓ Copiado' : '📋 Copiar'}
+                </button>
+              </span>
+            </div>
+          )}
+
+          {classe && (
+            <div className="detail-row">
+              <span className="detail-label">Classe</span>
+              <span className="detail-value">{classe}</span>
+            </div>
+          )}
+
           {orgao && (
             <div className="detail-row">
               <span className="detail-label">Órgão julgador</span>
               <span className="detail-value">{orgao}</span>
             </div>
           )}
+
           {relator && (
             <div className="detail-row">
               <span className="detail-label">Relator</span>
               <span className="detail-value">{relator}</span>
             </div>
           )}
-          {situacao && (
-            <div className="detail-row">
-              <span className="detail-label">Situação</span>
-              <span className="detail-value">{situacao}</span>
-            </div>
-          )}
-          {id && (
-            <div className="detail-row">
-              <span className="detail-label">Nº processo</span>
-              <span className="detail-value detail-mono">
-                {id.match(/STJ_SUP_(\d+)/)?.[1] || id}
-              </span>
-            </div>
-          )}
+
           {assuntos.length > 0 && (
-            <div className="detail-row detail-search">
-              <span className="detail-label">🔍 Pesquisar no STJ</span>
-              <span className="detail-value detail-search-terms">
-                {assuntos.join(', ')}
-              </span>
+            <div className="detail-row">
+              <span className="detail-label">Assuntos</span>
+              <span className="detail-value">{assuntos.join(', ')}</span>
             </div>
           )}
+
+          {/* Instrução de uso */}
+          <div className="detail-instrucao">
+            💡 Copie o número acima e pesquise no SCON para ler a íntegra do acórdão
+          </div>
+
+          <div className="detail-footer">
+            <button
+              type="button"
+              className="btn-scon"
+              onClick={abrirSCON}
+            >
+              Abrir SCON ↗
+            </button>
+          </div>
         </div>
       )}
 
@@ -130,17 +173,14 @@ export default function DecisionCard({ decisao, index }) {
               <path d="M2 6.5H11M7.5 3L11 6.5L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-
-          {link && (
-            <button
-              type="button"
-              className="card-link-text"
-              style={{ color: 'var(--text-muted)', fontSize: '12px' }}
-              onClick={abrirProcesso}
-            >
-              Ver no STJ ↗
-            </button>
-          )}
+          <button
+            type="button"
+            className="card-link-text"
+            style={{ color: 'var(--text-muted)', fontSize: '12px' }}
+            onClick={abrirSCON}
+          >
+            Pesquisar no STJ ↗
+          </button>
         </div>
         <span className="card-source">DataJud · CNJ</span>
       </div>

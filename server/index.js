@@ -54,6 +54,11 @@ function parseDataJud(str) {
     return new Date().toISOString();
   }
 }
+function formatarNumero(numero) {
+  if (!numero || numero.length < 20) return numero || '';
+  return `${numero.slice(0,7)}-${numero.slice(7,9)}.${numero.slice(9,13)}.${numero.slice(13,14)}.${numero.slice(14,16)}.${numero.slice(16)}`;
+}
+
 function montarResumo(src) {
   const partes = [];
   const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
@@ -108,7 +113,6 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
       const numero = src.numeroProcesso || hit._id || String(idx);
       const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean);
       const assunto = assuntos[0] || area;
-      const link = 'https://scon.stj.jus.br/SCON/';
 
       return {
         id: `datajud-stj-${area}-${numero}`,
@@ -116,7 +120,7 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
         titulo: `${src.classe?.nome || 'Processo'} — ${assunto}`,
         ementa: montarResumo(src),
         data: parseDataJud(src.dataAjuizamento),
-        link,
+        link: 'https://scon.stj.jus.br/SCON/',
         area,
         fonte: 'datajud',
         classe: src.classe?.nome || '',
@@ -124,6 +128,8 @@ async function queryDataJud(tribunal, area, terms, size = 50) {
         assuntos,
         situacao: src.situacao || '',
         relator: src.relator?.nome || '',
+        numeroCNJ: formatarNumero(numero),
+        numeroRaw: numero,
       };
     })
     .filter((d) => d.titulo.length > 3);

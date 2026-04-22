@@ -243,6 +243,11 @@ export default function Home() {
             </div>
           )}
 
+          {/* Banner informativo */}
+          <div className="info-banner">
+            📋 Processos em tempo real do STJ — Copie o número e pesquise no SCON para ler a íntegra
+          </div>
+
           <main className="decisions-container" id="main-content">
             {loading && <LoadingSpinner />}
 
